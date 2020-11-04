@@ -67,7 +67,12 @@ bool PlayerClient::IsValidInput(const std::string& str, iVec2D& pos)
 PlayerClient::PlayerClient()
     :numRow{ 0 }, numCol{ 0 }, numShots{ 0 }
 {
-   hWaitUpdate = CreateEvent(
+    hWaitUpdate = CreateEvent(
+        NULL,
+        FALSE,
+        FALSE,
+        NULL);
+    hWaitBegin = CreateEvent(
         NULL,
         FALSE,
         FALSE,
@@ -77,11 +82,6 @@ PlayerClient::PlayerClient()
 PlayerClient* PlayerClient::Get()
 {
     return gs_pc;
-}
-
-void PlayerClient::RunOnListenTH()
-{
-    listenTH = std::thread(PlayerClient::ThreadWrapper);
 }
 
 void PlayerClient::RequestGameBegin()
@@ -149,7 +149,6 @@ void PlayerClient::GameFinished(const Json& data)
     numShipsSunken = (int)data["YourShipsSunken"];
     const std::string statusText = data["Status"];
     PrintEndScreen(enemyShipsSunken, statusText);
-
 }
 
 int PlayerClient::Convert2Dto1D(const iVec2D pos)
@@ -194,7 +193,7 @@ PlayerClient::ShootStatus PlayerClient::Shoot(iVec2D& pos)
     }
     std::string str{ "" };
     thelp::AskInputS("", str);
-   
+
     if (!thelp::ToUpper(str))
         return ShootStatus::FailedToConvertUpper;
 
@@ -206,16 +205,18 @@ PlayerClient::ShootStatus PlayerClient::Shoot(iVec2D& pos)
 
 void PlayerClient::RequestShoot()
 {
-    iVec2D pos;
-    if (Shoot(pos) != ShootStatus::OK)
-        return;
-    Json response(Json::Object);
-    response.Set("Events", Json::Array);
-    response.Set("Status", S_OK);
-    response["Events"].Add(EVENT_SHOOT);
-    response.Set("Event_Shoot", Json::Object);
-    response["Event_Shoot"].Set("Pos", Convert2Dto1D(pos));
-    client.Send(response.Stringify().c_str());
+    if (GetNumShots() > 0)
+    { 
+        iVec2D pos;
+        while (Shoot(pos) != ShootStatus::OK);
+        Json response(Json::Object);
+        response.Set("Events", Json::Array);
+        response.Set("Status", S_OK);
+        response["Events"].Add(EVENT_SHOOT);
+        response.Set("Event_Shoot", Json::Object);
+        response["Event_Shoot"].Set("Pos", Convert2Dto1D(pos));
+        client.Send(response.Stringify().c_str());
+    }
 }
 
 void PlayerClient::RequestGameUpdate()
@@ -226,48 +227,27 @@ void PlayerClient::RequestGameUpdate()
     client.Send(response.Stringify().c_str());
 }
 
-void PlayerClient::GameBeginRequest()
-{
-    Json beginEvent(Json::Object);
-    beginEvent.Set("Events", Json::Array);
-    beginEvent["Events"].Add(EVENT_BEGIN);
-    client.Send(beginEvent.Stringify().c_str());
-    Json responseData;
-    assert(client.WaitEvent(S_BEGIN_OK, 3000, responseData) == 1);
-    GameBegin(responseData);
-}
-
 void PlayerClient::Connect(const std::string IP)
 {
     gs_pc = this;
-    /*
-    std::string IP;
-    thelp::AskInputS("Enter IP adress: ", IP);
-    */
     client.Init(IP);
 }
 
 void PlayerClient::Run()
 {
-    
-    RunOnListenTH();
+    listenTH = std::thread(PlayerClient::ThreadWrapper);
     RequestGameBegin();
-    Sleep(2000);
-    while (numShots > 0)
-    {
+    WaitForSingleObject(hWaitBegin, INFINITE);
+    while (GetNumShots() > 0)
+    {        
+        Sleep(10);//trying 100 ticks
+        RequestShoot();  
         WaitForSingleObject(hWaitUpdate, INFINITE);
-        RequestShoot();
     }
     client.ShutDown();
-    listenTH.join(); 
+    listenTH.join();
 }
 
-
-void PlayerClient::ShootAccepted(const int pos, const char ch)
-{
-    SetMove(pos, ch);
-
-}
 
 void PlayerClient::PrintBoard()
 {
@@ -347,8 +327,8 @@ void PlayerClient::ThreadWrapper()
 void PlayerClient::OnListen()
 {
     bool bGame = true;
-   do 
-   {
+    do
+    {     
         char data[DEFAULT_BUFLEN]{};
         int iResult = recv(client.GetSocket(), data, DEFAULT_BUFLEN, 0);
         if (iResult > 0)
@@ -364,13 +344,15 @@ void PlayerClient::OnListen()
                     case EVENT_BEGIN:
                         GameBegin(request["Event_Begin"]);
                         PrintBoard();
+                        SetEvent(hWaitBegin);
                         break;
-                    case EVENT_UPDATE:                 
-                        GameUpdate(request["Event_Update"]);                      
-                        PrintBoard();                      
+                    case EVENT_UPDATE:
+                        GameUpdate(request["Event_Update"]);
+                        PrintBoard();
+                        SetEvent(hWaitUpdate);
                         break;
                     case EVENT_TURN_ACCEPTED:
-                        ShootAccepted(request["Event_Turn_Accepted"]["Pos"], (int)request["Event_Turn_Accepted"]["Ch"]);
+                        SetMove(request["Event_Turn_Accepted"]["Pos"], (int)request["Event_Turn_Accepted"]["Ch"]);
                         PrintBoard();
                         break;
                     case EVENT_FINISHED:
@@ -382,11 +364,12 @@ void PlayerClient::OnListen()
                     }
                 }
             }
-            SetEvent(hWaitUpdate);
+            
         }
         if (iResult < 0)
             return;
-    }while (bGame);
+        Sleep(10);//trying 100 ticks
+    } while (bGame);
 }
 
 const size_t PlayerClient::GetNumShots() const

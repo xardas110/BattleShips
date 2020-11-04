@@ -313,7 +313,6 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
         char data[DEFAULT_BUFLEN]{};
         Json request;
         Json response;
-
         int iResult = recv(Server::Get()->clientSocket[ID], data, DEFAULT_BUFLEN, 0);
         if (iResult == -1)return;  if (iResult == 0)continue;
                               
@@ -339,7 +338,7 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
                 //So the move is valid, set move and send updated info to the player
                 SetMove(pos, ID, enemyID);
                 hitCH = hitResult == HitStatus::Hit ? (int)hit : (int)miss;   
-                //Respond to player that shoot succeded
+                //Respond to player that shot succeded
                 RespondShootAccepted(ID, pos, hitCH);
                 //Now lets send updated info  
                 RespondGameUpdate(ID);
@@ -351,7 +350,8 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
             default:
                 break;
             }
-        }    
+        } 
+        Sleep(10);//trying 100 ticks
     }
     Sleep(1000);
     RespondGameFinished(ID);

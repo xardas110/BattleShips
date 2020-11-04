@@ -9,6 +9,7 @@
 #include <iostream>
 #include <thread>
 #include "Json.h"
+#include <mutex>
 
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 #pragma comment (lib, "Ws2_32.lib")
@@ -23,17 +24,12 @@ class Client
 private:
 	SOCKET ConnectSocket = INVALID_SOCKET;
 	std::thread* listenTh = nullptr;
-	void Listen();
-	void Clean();
 public:
 	const SOCKET& GetSocket() const;
 	int Init(const std::string IP);
 	int Send(const char* data);
 	int WaitEvent(int event, const size_t waitMS, Json& eventData);
 	static Client* Get();
-	static void OnListen();
-	void Run();
-	void IncomingData(char* data);
 	int ShutDown();
 
 	~Client();

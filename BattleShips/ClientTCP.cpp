@@ -92,7 +92,7 @@ int Client::WaitEvent(int event, const size_t waitMS, Json& eventData)
     char data[DEFAULT_BUFLEN]{};
     do
     {
-        iResult = recv(ConnectSocket, data, DEFAULT_BUFLEN,0);
+        iResult = recv(ConnectSocket, data, DEFAULT_BUFLEN, 0);
         eventData = Json::Parse(data);
         if (eventData.GetType() != Json::Object)
             continue;
@@ -116,43 +116,6 @@ Client* Client::Get()
     return gs_app;
 }
 
-void Client::OnListen()
-{
-    Client::Get()->Listen();
-}
-
-void Client::Listen()
-{
-    int iResult{ 0 };
-    char buff[DEFAULT_BUFLEN]{};
-    do {
-        int iResult = recv(ConnectSocket, buff, DEFAULT_BUFLEN, 0);
-        if (iResult > 0)
-        {
-            std::cout << buff << std::endl;
-        }
-        else if (iResult == 0)
-            printf("Connection closed\n");
-        else
-            printf("recv failed with error: %d\n", WSAGetLastError());
-        ZeroMemory(buff, DEFAULT_BUFLEN);
-    } while (true);
-}
-
-void Client::Run()
-{
-    listenTh = new std::thread(Client::OnListen);
-}
-
-void Client::IncomingData(char* data)
-{
-    for (size_t i = 0; i < strlen(data); i++)
-    {
-        std::cout << data[i];
-    }
-    std::cout << std::endl;
-}
-
 int Client::ShutDown()
 {
     // shutdown the connection since no more data will be sent
@@ -162,16 +125,12 @@ int Client::ShutDown()
         closesocket(ConnectSocket);
         WSACleanup();
         return 1;
-    }
-}
-
-void Client::Clean()
-{
-    closesocket(ConnectSocket);
-    WSACleanup();
+    }  
 }
 
 Client::~Client()
 {
+    closesocket(ConnectSocket);
+    WSACleanup();
     delete listenTh;
 }

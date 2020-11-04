@@ -8,7 +8,7 @@
 class PlayerClient
 {
 	std::thread listenTH;
-	HANDLE hWaitUpdate;
+	HANDLE hWaitUpdate, hWaitBegin;
 	char** boardReplicate{ nullptr };
 	char** enemyboardReplicate{ nullptr };
 	Client client;
@@ -32,7 +32,6 @@ class PlayerClient
 	bool SetTile(const int pos, char ch);
 	void SetMove(const int pos, char ch);
 	ShootStatus Shoot(iVec2D& pos);
-	void ShootAccepted(const int pos, const char ch);
 	void PrintBoard();
 	void PrintEndScreen(const int enemyShipsSunken, const std::string& statusText);
 	void WriteLetters();
@@ -43,11 +42,9 @@ class PlayerClient
 public:
 	PlayerClient();
 	static PlayerClient* Get();
-	void RunOnListenTH();
 	void RequestGameBegin();
 	void RequestShoot();
 	void RequestGameUpdate();
-	void GameBeginRequest();
 	void Connect(const std::string IP);
 	void Run();
 };
