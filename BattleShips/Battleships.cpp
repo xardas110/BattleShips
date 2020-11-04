@@ -173,6 +173,17 @@ void Battleships::RespondShootAccepted(const size_t ID, const int pos, const cha
     response["Event_Turn_Accepted"].Set("Ch", (int)ch);
     server->Send(response.Stringify().c_str(), ID);
 }
+void Battleships::RespondPlayerShipHit(const size_t ID, const int pos, const char ch)
+{
+    Json response = Json(Json::Object);
+    response.Set("Events", Json::Array);
+    response.Set("Status", S_OK);
+    response.Set("Event_Player_Ship_Hit", Json::Object);
+    response["Events"].Add(EVENT_PLAYER_SHIP_HIT);
+    response["Event_Player_Ship_Hit"].Set("Pos", pos);
+    response["Event_Player_Ship_Hit"].Set("Ch", (int)ch);
+    server->Send(response.Stringify().c_str(), ID);
+}
 void Battleships::RespondGameUpdate(const size_t ID)
 {
     Json response = Json(Json::Object);
@@ -340,9 +351,8 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
                 hitCH = hitResult == HitStatus::Hit ? (int)hit : (int)miss;   
                 //Respond to player that shot succeded
                 RespondShootAccepted(ID, pos, hitCH);
-                //Now lets send updated info  
-                RespondGameUpdate(ID);
-                RespondGameUpdate(enemyID);               
+                //Now lets send updated info to enemy  
+                RespondPlayerShipHit(enemyID, pos, hitCH);
                 break;
             case EVENT_UPDATE:
                 RespondGameUpdate(ID);

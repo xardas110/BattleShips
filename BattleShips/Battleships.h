@@ -43,6 +43,7 @@ private:
 	void MakeBoard(const int numShips);
 
 	void RespondShootAccepted(const size_t playerID, const int pos, const char ch);
+	void RespondPlayerShipHit(const size_t playerID, const int pos, const char ch);
 	void RespondGameUpdate(const size_t playerID);
 	void RespondGameBegin(const size_t playerID);
 	void RespondGameFinished(const size_t playerID);

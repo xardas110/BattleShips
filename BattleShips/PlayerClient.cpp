@@ -149,6 +149,14 @@ void PlayerClient::GameFinished(const Json& data)
     numShipsSunken = (int)data["YourShipsSunken"];
     const std::string statusText = data["Status"];
     PrintEndScreen(enemyShipsSunken, statusText);
+
+}
+
+void PlayerClient::GamePlayerShipHit(const Json& data)
+{
+    iVec2D pos = Convert1Dto2D((int)data["Pos"]);
+    const char ch = (int)data["Ch"];
+    boardReplicate[pos.y][pos.x] = ch;
 }
 
 int PlayerClient::Convert2Dto1D(const iVec2D pos)
@@ -206,7 +214,7 @@ PlayerClient::ShootStatus PlayerClient::Shoot(iVec2D& pos)
 void PlayerClient::RequestShoot()
 {
     if (GetNumShots() > 0)
-    { 
+    {
         iVec2D pos;
         while (Shoot(pos) != ShootStatus::OK);
         Json response(Json::Object);
@@ -239,9 +247,9 @@ void PlayerClient::Run()
     RequestGameBegin();
     WaitForSingleObject(hWaitBegin, INFINITE);
     while (GetNumShots() > 0)
-    {        
-        Sleep(10);//trying 100 ticks
-        RequestShoot();  
+    {
+        RequestShoot();
+        RequestGameUpdate();
         WaitForSingleObject(hWaitUpdate, INFINITE);
     }
     client.ShutDown();
@@ -328,7 +336,7 @@ void PlayerClient::OnListen()
 {
     bool bGame = true;
     do
-    {     
+    {
         char data[DEFAULT_BUFLEN]{};
         int iResult = recv(client.GetSocket(), data, DEFAULT_BUFLEN, 0);
         if (iResult > 0)
@@ -359,17 +367,20 @@ void PlayerClient::OnListen()
                         GameFinished(request["Event_Finished"]);
                         bGame = false;
                         break;
+                    case EVENT_PLAYER_SHIP_HIT:
+                        GamePlayerShipHit(request["Event_Player_Ship_Hit"]);
+                        PrintBoard();
+                        break;
                     default:
                         break;
                     }
                 }
             }
-            
         }
         if (iResult < 0)
             return;
-        Sleep(10);//trying 100 ticks
     } while (bGame);
+    SetEvent(hWaitUpdate); //For best practise to avoid infinite loop in other thread.
 }
 
 const size_t PlayerClient::GetNumShots() const
