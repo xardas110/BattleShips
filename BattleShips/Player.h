@@ -2,13 +2,22 @@
 #include "TerminalHelpers.h"
 #include "Vec.h"
 #include <vector>
+#include <set>
 class Player
 {
 	friend class Battleships;
 	struct Ship
 	{
-		std::vector<int> pos;
+		size_t ID;
+		std::set<int> pos;
+		Ship(int x, int y, int z)
+		{
+			pos.insert(x);
+			pos.insert(y);
+			pos.insert(z);
+		}
 	};
+	std::set<std::pair<int, std::vector<Ship>>> ships;
 	std::vector<Ship> Ships;
 	enum GameMode
 	{

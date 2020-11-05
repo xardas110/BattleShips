@@ -162,6 +162,9 @@ void Battleships::MakeBoard(const int numShips)
         }
     }
 }
+void Battleships::MakeBoard3(const int numShips)
+{
+}
 void Battleships::RespondShootAccepted(const size_t ID, const int pos, const char ch)
 {
     Json response = Json(Json::Object);

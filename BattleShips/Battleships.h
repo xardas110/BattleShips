@@ -41,6 +41,7 @@ private:
 	const void SetMove(const int pos, const size_t playerID, const size_t enemyID);
 	void MakeEmptyBoard();
 	void MakeBoard(const int numShips);
+	void MakeBoard3(const int numShips);
 
 	void RespondShootAccepted(const size_t playerID, const int pos, const char ch);
 	void RespondPlayerShipHit(const size_t playerID, const int pos, const char ch);
