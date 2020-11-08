@@ -95,7 +95,7 @@ bool Authenticate::Run()
         switch (_getch())
         {           
             case 'w':
-                if (pos.y - 1 > 0) pos.y--; else continue;
+                if (pos.y - 1 >= 0) pos.y--; else continue;
                 break;
             case 's':
                 if (pos.y + 1 < AUTH_NUM_ROWS) pos.y++; else continue;
@@ -104,7 +104,7 @@ bool Authenticate::Run()
                 if (pos.x + 1 < AUTH_NUM_COLS) pos.x++; else continue;
                 break;
             case 'a':
-                if (pos.x - 1 > 0) pos.x--; else continue;
+                if (pos.x - 1 >= 0) pos.x--; else continue;
                 break;
             default:
                 continue;
