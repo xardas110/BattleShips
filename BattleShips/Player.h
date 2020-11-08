@@ -3,27 +3,11 @@
 #include "Vec.h"
 #include <vector>
 #include <set>
+#include "SHIPS.h"
 class Player
 {
 	friend class Battleships;
-	struct Ship
-	{
-		size_t ID;
-		std::set<int> pos;
-		Ship(int x, int y, int z)
-		{
-			pos.insert(x);
-			pos.insert(y);
-			pos.insert(z);
-		}
-	};
-	std::set<std::pair<int, std::vector<Ship>>> ships;
-	std::vector<Ship> Ships;
-	enum GameMode
-	{
-		SingleCell, TrippleCell, Invalid
-	} gameMode = GameMode::Invalid;
-
+	Ships* ships;
 	int numShots{};
 	int numHits{};
 	int numCol{};
@@ -41,7 +25,7 @@ class Player
 	std::vector<int> takenTiles;
 public:
 	
-	Player(const int numCol, const int numRow, const int numShots = 1);
+	Player(const int numCol, const int numRow, const int numShots = 20);
 	Player(const Player& other);
 	Player& operator=(const Player& other);
 	Player();

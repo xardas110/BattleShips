@@ -140,6 +140,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="MakeBoard3Test.cpp" />
+    <ClCompile Include="SHIPS.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SHIPS.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

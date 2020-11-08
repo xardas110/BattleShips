@@ -28,10 +28,9 @@ int Client::Init(const std::string IP)
     }
 
     ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
-
     // Resolve the server address and port
     iResult = getaddrinfo(IP.c_str(), DEFAULT_PORT, &hints, &result);
     if (iResult != 0) {

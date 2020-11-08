@@ -469,7 +469,7 @@ Json Json::Parse(const std::string& js)
 		{
 			result.var_->type = Type::Null;
 		}
-		else if (fixed.find_first_of('.') != UINT32_MAX)
+		else if (fixed.find_first_of("+.eE") != std::string::npos)
 		{
 			result.var_->ParseAsFloat(fixed);
 		}

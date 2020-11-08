@@ -48,6 +48,7 @@ private:
 	void RespondGameUpdate(const size_t playerID);
 	void RespondGameBegin(const size_t playerID);
 	void RespondGameFinished(const size_t playerID);
+	void RespondGamePing(const size_t playerID);
 protected:	
 	int GetRandomRow();
 	int GetRandomColumn();

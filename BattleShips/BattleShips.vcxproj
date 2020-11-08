@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AiClient.cpp" />
     <ClCompile Include="Battleships.cpp" />
     <ClCompile Include="ClientTCP.cpp" />
     <ClCompile Include="Json.cpp" />
@@ -147,9 +148,11 @@
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerClient.cpp" />
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="SHIPS.cpp" />
     <ClCompile Include="Vec.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AiClient.h" />
     <ClInclude Include="Auth.h" />
     <ClInclude Include="Battleships.h" />
     <ClInclude Include="ClientTCP.h" />
@@ -158,6 +161,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerClient.h" />
     <ClInclude Include="Server.h" />
+    <ClInclude Include="SHIPS.h" />
     <ClInclude Include="TerminalHelpers.h" />
     <ClInclude Include="Vec.h" />
   </ItemGroup>

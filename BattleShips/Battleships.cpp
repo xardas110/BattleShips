@@ -164,6 +164,23 @@ void Battleships::MakeBoard(const int numShips)
 }
 void Battleships::MakeBoard3(const int numShips)
 {
+    for (size_t j = 0; j < numPlayers; j++)
+    {
+        int nShips{ 0 };
+        while (nShips < numShips)
+        {
+            Ships::Ship ship;
+            if (!players[j].ships->GetRandomShip(ship))
+                break;
+            nShips++;
+            for (size_t i = 0; i < ship.pos.size(); i++)
+            {
+                iVec2D pos = Convert1Dto2D(ship.pos[i]);
+                players[j].board[pos.y][pos.x] = this->ship;
+            }
+
+        };
+    }
 }
 void Battleships::RespondShootAccepted(const size_t ID, const int pos, const char ch)
 {
@@ -189,14 +206,15 @@ void Battleships::RespondPlayerShipHit(const size_t ID, const int pos, const cha
 }
 void Battleships::RespondGameUpdate(const size_t ID)
 {
+    const size_t enemyID = ID == 0 ? 1 : 0;
     Json response = Json(Json::Object);
     response.Set("Events", Json::Array);
     response.Set("Status", S_OK);
     response["Events"].Add(EVENT_UPDATE);
     response.Set("Event_Update", Json::Object);
     response["Event_Update"].Set("NumShots", players[ID].numShots);
-    response["Event_Update"].Set("NumHits", players[ID].numHits);
-    response["Event_Update"].Set("NumShipsSunken", players[ID].numShipsSunken);
+    response["Event_Update"].Set("NumHits", (int)players[enemyID].ships->GetNumHits());
+    response["Event_Update"].Set("NumShipsSunken", (int)players[enemyID].ships->GetNumSunkenShips());
     response["Event_Update"].Set("Board", Json::Array);
     for (size_t y = 0; y < BS_NUM_ROWS; y++)
     {
@@ -258,16 +276,23 @@ void Battleships::RespondGameFinished(const size_t playerID)
             response["Event_Finished"]["YourBoard"][y].Add(val);
         }
     }
-    response["Event_Finished"].Set("EnemyHits", players[enemyID].numHits);
-    response["Event_Finished"].Set("YourHits", players[playerID].numHits);
-    response["Event_Finished"].Set("EnemyShipsSunken", players[enemyID].numShipsSunken);
-    response["Event_Finished"].Set("YourShipsSunken", players[playerID].numShipsSunken);
-    if (players[enemyID].numShipsSunken > players[playerID].numShipsSunken)
+    response["Event_Finished"].Set("EnemyHits", (int)players[playerID].ships->GetNumHits());
+    response["Event_Finished"].Set("YourHits", (int)players[enemyID].ships->GetNumHits());
+    response["Event_Finished"].Set("EnemyShipsSunken", (int)players[playerID].ships->GetNumSunkenShips());
+    response["Event_Finished"].Set("YourShipsSunken", (int)players[enemyID].ships->GetNumSunkenShips());
+    if (players[enemyID].ships->GetNumShips() > players[playerID].ships->GetNumShips())
         response["Event_Finished"].Set("Status", "Enemy Wins");
-    else if (players[enemyID].numShipsSunken == players[playerID].numShipsSunken)
+    else if (players[enemyID].ships->GetNumShips() == players[playerID].ships->GetNumShips())
         response["Event_Finished"].Set("Status", "Draw");
     else
         response["Event_Finished"].Set("Status", "You Win");
+    server->Send(response.Stringify().c_str(), playerID);
+}
+void Battleships::RespondGamePing(const size_t playerID)
+{
+    Json response(Json::Object);
+    response.Set("Events", Json::Array);
+    response["Events"].Add(EVENT_PING);
     server->Send(response.Stringify().c_str(), playerID);
 }
 /*
@@ -299,7 +324,7 @@ int Battleships::InitMP(const int numPlayers)
     
     srand(UINT(std::time(nullptr)));
     MakeEmptyBoard();
-    MakeBoard(18);
+    MakeBoard3(9);
     return true;
 }
 
@@ -350,15 +375,22 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
                     continue;
                 }
                 //So the move is valid, set move and send updated info to the player
-                SetMove(pos, ID, enemyID);
-                hitCH = hitResult == HitStatus::Hit ? (int)hit : (int)miss;   
-                //Respond to player that shot succeded
-                RespondShootAccepted(ID, pos, hitCH);
-                //Now lets send updated info to enemy  
-                RespondPlayerShipHit(enemyID, pos, hitCH);
+                if (players[ID].numShots > 0)
+                { 
+                    players[enemyID].ships->SetMove(pos, players[enemyID].board);
+                    players[ID].numShots--;
+                    hitCH = hitResult == HitStatus::Hit ? (int)hit : (int)miss;   
+                    //Respond to player that shot succeded
+                    RespondShootAccepted(ID, pos, hitCH);
+                    //Now lets send updated info to enemy  
+                    RespondPlayerShipHit(enemyID, pos, (int)players[enemyID].board[pos2D.y][pos2D.x]);
+                }
                 break;
             case EVENT_UPDATE:
                 RespondGameUpdate(ID);
+                break;
+            case EVENT_PING:
+                RespondGamePing(ID);
                 break;
             default:
                 break;

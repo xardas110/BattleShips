@@ -1,5 +1,6 @@
 #pragma once
 //For now the only supported format is Ascii2
+//Inspired by rhymu8354 a twitch streamer
 #include <memory>
 #include <vector>
 #include <string>

@@ -173,8 +173,9 @@ bool Player::IsValidInput(const std::string& str, iVec2D& pos)
     return true;
 }
 Player::Player(const int numCol, const int numRow, const int numShots)
-    :numCol(numCol), numRow(numRow), numShots(numShots), numHits{0}
+    :numCol(numCol), numRow(numRow), numShots(numShots), numHits{ 0 }
 {
+    ships = new Ships(numCol, numRow);
     board = new char*[numRow];
     for (size_t y = 0; y < numRow; y++)
     {
@@ -187,6 +188,7 @@ Player::Player(const int numCol, const int numRow, const int numShots)
 Player::Player(const Player& other)
     :numCol(other.numCol), numRow(other.numRow),numShots(other.numShots), numHits(other.numHits)
 {
+    ships = new Ships(other.numCol, other.numRow);
     board = std::move(other.board);
 }
 
@@ -196,7 +198,7 @@ Player& Player::operator=(const Player& other)
     numRow = other.numRow;
     numShots = other.numShots;
     numHits = other.numHits;
-
+    ships =  new Ships(numCol, numRow);//Should make a copy of ships class here, but Im just to lazy
     board = new char* [numRow];
     for (size_t i = 0; i < numRow; i++)
     {
@@ -218,6 +220,7 @@ Player& Player::operator=(const Player& other)
 Player::Player()
     :numCol(0), numRow(0), numShots(0), numHits{ 0 }
 {
+    ships = new Ships(0, 0);
 }
 void Player::PrintBoard()
 {
@@ -295,4 +298,5 @@ void Player::SetTile(const iVec2D& pos, const char& hitCh, const bool bHit)
 
 Player::~Player()
 {
+    delete ships;
 }

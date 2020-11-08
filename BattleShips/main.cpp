@@ -12,11 +12,15 @@
 #include "ClientTCP.h"
 #include "Json.h"
 #include "PlayerClient.h"
+#include "AiClient.h"
 
 int main()
 {
-	/*
+	
 	std::shared_ptr<Battleships> battleShips = std::make_shared<Battleships>(Battleships());
+	PlayerClient pC;
+	AiClient aC;
+	std::thread th;
 	int numPlay{ 2 };
 	Authenticate auth("Password.txt");
 	while (!auth.Run())
@@ -47,34 +51,31 @@ int main()
 				}
 				break;
 			case'2':
-				if (!battleShips->InitSP()) return -1;
-				do
-				{
-					battleShips->OnUpdateRender();
-					battleShips->OnClear();
-				} while (true);
+				aC = AiClient();
+				battleShips->InitMP(2);
+				th = std::thread(Battleships::Init);
+				aC.Connect("127.0.0.1");
+				th.join();
+				battleShips->RunMP();
+				aC.Run();
+				battleShips->JoinThreads();
+				system("pause");
 				break;
-			case '3':			
-				thelp::AskInput("Choose number of players: ", numPlay);
-				if (!battleShips->InitMP(numPlay)) return -1;
-				do
-				{
-					battleShips->OnUpdateRenderMP();
-				} while (true);
+			case '3':	
+				pC = PlayerClient();
+				battleShips->InitMP(2);
+				th = std::thread(Battleships::Init);
+				pC.Connect("127.0.0.1");
+				th.join();
+				battleShips->RunMP();
+				pC.Run();
+				battleShips->JoinThreads();
+				system("pause");
 				break;
 			default:
 				break;
 		}
 	} while (input != '4');
-	*/
-	std::shared_ptr<Battleships> battleShips = std::make_shared<Battleships>(Battleships());
-	PlayerClient pC;
-	battleShips->InitMP(2);
-	std::thread th(Battleships::Init);	
-	pC.Connect("192.168.2.248");
-	th.join();
-	battleShips->RunMP();
-	pC.Run();
 
-	battleShips->JoinThreads();
+	
 }

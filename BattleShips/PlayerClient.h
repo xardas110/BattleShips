@@ -7,6 +7,7 @@
 
 class PlayerClient
 {
+protected:
 	std::thread listenTH;
 	HANDLE hWaitUpdate, hWaitBegin;
 	char** boardReplicate{ nullptr };
@@ -44,7 +45,7 @@ public:
 	PlayerClient();
 	static PlayerClient* Get();
 	void RequestGameBegin();
-	void RequestShoot();
+	virtual void RequestShoot();
 	void RequestGameUpdate();
 	void Connect(const std::string IP);
 	void Run();
