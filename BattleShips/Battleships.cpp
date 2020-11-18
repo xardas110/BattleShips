@@ -315,6 +315,7 @@ void _stdcall Battleships::RespondShootEvent(const size_t pos, const size_t play
     {
         std::cout << "Failed to set move" << std::endl;
         thelp::This_Thread_Sleep(1000);
+        return;
     }
     players[playerID].numShots--;
     const char hitCH = hitResult == HitStatus::Hit ? (int)hit : (int)miss;
