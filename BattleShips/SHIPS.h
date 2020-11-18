@@ -38,6 +38,7 @@ public:
     size_t GetPossibleVerticalPositionsSize();
     bool SetMove(size_t pos, char** board);
     bool GetRandomShip(Ship& ship);
+    const std::map<size_t, SHIPREF>& GetTakenPositions() const;
     size_t GetNumShips();
     size_t GetNumSunkenShips();
     size_t GetNumHits();

@@ -158,7 +158,7 @@
     <ClInclude Include="ClientTCP.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="NetworkEvents.h" />
-    <ClInclude Include="Player.h" />
+    <ClInclude Include="PlayerServer.h" />
     <ClInclude Include="PlayerClient.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="SHIPS.h" />

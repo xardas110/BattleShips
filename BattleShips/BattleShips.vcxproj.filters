@@ -62,9 +62,6 @@
     <ClInclude Include="Battleships.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Player.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -84,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="AiClient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

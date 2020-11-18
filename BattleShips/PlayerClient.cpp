@@ -101,11 +101,11 @@ void PlayerClient::GameBegin(const Json& data)
     numCol = (int)data["NumCol"];
     numRow = (int)data["NumRow"];
 
-    boardReplicate = new char* [numRow];
+    playerBoardReplicate = new char* [numRow];
     enemyboardReplicate = new char* [numRow];
     for (size_t i = 0; i < numRow; i++)
     {
-        boardReplicate[i] = new char[numCol];
+        playerBoardReplicate[i] = new char[numCol];
         enemyboardReplicate[i] = new char[numCol];
     }
 
@@ -113,7 +113,7 @@ void PlayerClient::GameBegin(const Json& data)
     {
         for (size_t x = 0; x < data["Board"][y].Size(); x++)
         {
-            boardReplicate[y][x] = (int)data["Board"][y][x];
+            playerBoardReplicate[y][x] = (int)data["Board"][y][x];
             enemyboardReplicate[y][x] = ' ';
         }
     }
@@ -129,7 +129,7 @@ void PlayerClient::GameUpdate(const Json& data)
     {
         for (size_t x = 0; x < data["Board"][y].Size(); x++)
         {
-            boardReplicate[y][x] = (int)data["Board"][y][x];
+            playerBoardReplicate[y][x] = (int)data["Board"][y][x];
         }
     }
 }
@@ -140,7 +140,7 @@ void PlayerClient::GameFinished(const Json& data)
     {
         for (size_t x = 0; x < data["YourBoard"][y].Size(); x++)
         {
-            boardReplicate[y][x] = (int)data["YourBoard"][y][x];
+            playerBoardReplicate[y][x] = (int)data["YourBoard"][y][x];
             enemyboardReplicate[y][x] = (int)data["EnemyBoard"][y][x];
         }
     }
@@ -156,7 +156,7 @@ void PlayerClient::GamePlayerShipHit(const Json& data)
 {
     iVec2D pos = Convert1Dto2D((int)data["Pos"]);
     const char ch = (int)data["Ch"];
-    boardReplicate[pos.y][pos.x] = ch;
+    playerBoardReplicate[pos.y][pos.x] = ch;
 }
 
 int PlayerClient::Convert2Dto1D(const iVec2D pos)
@@ -266,7 +266,7 @@ void PlayerClient::PrintBoard()
         std::cout << ym << " ";
         for (size_t x = 0; x < numCol; x++)
         {
-            std::cout << '|' << boardReplicate[y][x];
+            std::cout << '|' << playerBoardReplicate[y][x];
         }
         std::cout << "|\t\t" << ym << " ";
 
@@ -290,7 +290,7 @@ void PlayerClient::PrintEndScreen(const int enemyShipsSunken, const std::string&
         std::cout << ym << " ";
         for (size_t x = 0; x < numCol; x++)
         {
-            std::cout << '|' << boardReplicate[y][x];
+            std::cout << '|' << playerBoardReplicate[y][x];
         }
         std::cout << "|\t\t" << ym << " ";
 

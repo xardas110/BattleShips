@@ -31,7 +31,7 @@ void Battleships::Init()
     Battleships::Get()->server->Init();
 }
 
-Battleships::HitStatus Battleships::IsHit(iVec2D& pos, const size_t playerID)
+Battleships::HitStatus Battleships::IsHit(iVec2D pos, const size_t playerID)
 {
     if (pos.x < 0 || pos.x >= BS_NUM_COLS)
         return HitStatus::Invalid;
@@ -109,22 +109,22 @@ void Battleships::MakeEmptyBoard()
     }
 }
 
-int Battleships::GetRandomRow()
+const int Battleships::GetRandomRow() const
 {
     return rand() % BS_NUM_ROWS;
 }
 
-int Battleships::GetRandomColumn()
+const int Battleships::GetRandomColumn() const
 {
     return rand() % BS_NUM_COLS;
 }
 
-int Battleships::Convert2Dto1D(const iVec2D& val)
+const int Battleships::Convert2Dto1D(const iVec2D& val) const
 {
     return val.y * BS_NUM_COLS + val.x;
 }
 
-iVec2D Battleships::Convert1Dto2D(const int n)
+const iVec2D Battleships::Convert1Dto2D(const int n) const
 {
     iVec2D pos;
     pos.x = n % BS_NUM_COLS;
@@ -132,7 +132,7 @@ iVec2D Battleships::Convert1Dto2D(const int n)
     return pos;
 }
 
-const int Battleships::GetRandomOpenTile(const size_t playerID)
+const int Battleships::GetRandomOpenTile(const size_t playerID) const
 {
     const int randNum = rand() % players[playerID].availableTiles.size();
     const int result = players[playerID].availableTiles[randNum];
@@ -141,7 +141,7 @@ const int Battleships::GetRandomOpenTile(const size_t playerID)
     return result;
 }
 
-void Battleships::WriteLetters()
+void Battleships::WriteLetters() const
 {
     int currVal{ 65 };
     for (int x = 0; x < BS_NUM_COLS; x++)
@@ -169,7 +169,7 @@ void Battleships::MakeBoard3(const int numShips)
         int nShips{ 0 };
         while (nShips < numShips)
         {
-            Ships::Ship ship;
+            Ships::Ship ship; //just a copy of a random ship recieved
             if (!players[j].ships->GetRandomShip(ship))
                 break;
             nShips++;
@@ -178,11 +178,10 @@ void Battleships::MakeBoard3(const int numShips)
                 iVec2D pos = Convert1Dto2D(ship.pos[i]);
                 players[j].board[pos.y][pos.x] = this->ship;
             }
-
         };
     }
 }
-void Battleships::RespondShootAccepted(const size_t ID, const int pos, const char ch)
+void Battleships::RespondShootAccepted(const size_t ID, const int pos, const char ch) const
 {
     Json response = Json(Json::Object);
     response.Set("Events", Json::Array);
@@ -193,7 +192,7 @@ void Battleships::RespondShootAccepted(const size_t ID, const int pos, const cha
     response["Event_Turn_Accepted"].Set("Ch", (int)ch);
     server->Send(response.Stringify().c_str(), ID);
 }
-void Battleships::RespondPlayerShipHit(const size_t ID, const int pos, const char ch)
+void Battleships::RespondPlayerShipHit(const size_t ID, const int pos, const char ch) const
 {
     Json response = Json(Json::Object);
     response.Set("Events", Json::Array);
@@ -204,7 +203,7 @@ void Battleships::RespondPlayerShipHit(const size_t ID, const int pos, const cha
     response["Event_Player_Ship_Hit"].Set("Ch", (int)ch);
     server->Send(response.Stringify().c_str(), ID);
 }
-void Battleships::RespondGameUpdate(const size_t ID)
+void Battleships::RespondGameUpdate(const size_t ID) const
 {
     const size_t enemyID = ID == 0 ? 1 : 0;
     Json response = Json(Json::Object);
@@ -227,7 +226,7 @@ void Battleships::RespondGameUpdate(const size_t ID)
     }
     server->Send(response.Stringify().c_str(), ID);
 }
-void Battleships::RespondGameBegin(const size_t ID)
+void Battleships::RespondGameBegin(const size_t ID) const
 {
     Json response = Json(Json::Object);
     response.Set("Events", Json::Array);
@@ -249,7 +248,7 @@ void Battleships::RespondGameBegin(const size_t ID)
     }
     server->Send(response.Stringify().c_str(), ID);
 }
-void Battleships::RespondGameFinished(const size_t playerID)
+void Battleships::RespondGameFinished(const size_t playerID) const
 {
     const size_t enemyID = playerID == 0 ? 1 : 0;
     Json response = Json(Json::Object);
@@ -288,29 +287,42 @@ void Battleships::RespondGameFinished(const size_t playerID)
         response["Event_Finished"].Set("Status", "You Win");
     server->Send(response.Stringify().c_str(), playerID);
 }
-void Battleships::RespondGamePing(const size_t playerID)
+void Battleships::RespondGamePing(const size_t playerID) const
 {
     Json response(Json::Object);
     response.Set("Events", Json::Array);
     response["Events"].Add(EVENT_PING);
     server->Send(response.Stringify().c_str(), playerID);
 }
-/*
-void Battleships::MakeBoard3(const int numShips)
-{
-    if (gameMode == Invalid)
-        gameMode = TrippleCell;
-    assert(GameMode::TrippleCell == gameMode);
-    iVec2D pos;
-    pos.x = GetRandomColumn();
-    pos.y = GetRandomRow();
-    int placedShips{ 0 };
-    while (placedShips < numShips)
-    {
-    }
 
+void _stdcall Battleships::RespondShootEvent(const size_t pos, const size_t playerID, const size_t enemyID)
+{
+    if (players[playerID].numShots <= 0)
+        return;
+    Json response(Json::Object);
+
+    const iVec2D pos2D = Convert1Dto2D(pos);
+    const HitStatus hitResult = IsHit(pos2D, enemyID);
+   
+    if (hitResult == HitStatus::Invalid)
+    {
+        response.Set("Status", S_FAILED);
+        server->Send(response.Stringify().c_str(), playerID);
+        return;
+    }
+    //So the move is valid, set move and send updated info to the player
+    if (!SetMove(pos, players[enemyID]))
+    {
+        std::cout << "Failed to set move" << std::endl;
+        thelp::This_Thread_Sleep(1000);
+    }
+    players[playerID].numShots--;
+    const char hitCH = hitResult == HitStatus::Hit ? (int)hit : (int)miss;
+    //Respond to player that shot succeded
+    RespondShootAccepted(playerID, pos, hitCH);
+    //Now lets send updated info to enemy  
+    RespondPlayerShipHit(enemyID, pos, (int)players[enemyID].board[pos2D.y][pos2D.x]); 
 }
-*/
 
 int Battleships::InitMP(const int numPlayers)
 {
@@ -332,8 +344,7 @@ void Battleships::RunMP()
 {
     serverTH = new std::thread[numPlayers];
     for (size_t i = 0; i < numPlayers; i++)
-        serverTH[i] = std::thread(Battleships::OnListen, i);
-    
+        serverTH[i] = std::thread(Battleships::OnListen, i);    
 }
 
 void Battleships::JoinThreads()
@@ -349,14 +360,13 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
     const size_t enemyID = ID == 0 ? 1 : 0;  
     while (players[ID].numShots > 0 || players[enemyID].numShots > 0)
     { 
-        char data[DEFAULT_BUFLEN]{};
         Json request;
-        Json response;
+        char data[DEFAULT_BUFLEN]{};
+       
         int iResult = recv(Server::Get()->clientSocket[ID], data, DEFAULT_BUFLEN, 0);
-        if (iResult == -1)return;  if (iResult == 0)continue;
-                              
+        if (iResult == -1)return;  if (iResult == 0)continue;                           
         request = Json::Parse(data);
-        int pos{ 0 }; HitStatus hitResult = HitStatus::Invalid; iVec2D pos2D; char hitCH{};
+
         for (const auto event : request["Events"])
         {
             switch ((int)event.Value())
@@ -365,26 +375,7 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
                 RespondGameBegin(ID);
                 break;
             case EVENT_SHOOT:
-                pos = request["Event_Shoot"]["Pos"];
-                pos2D = Convert1Dto2D(pos);
-                hitResult = IsHit(pos2D, enemyID);
-                if (hitResult == HitStatus::Invalid)
-                { 
-                    response.Set("Status", S_FAILED);
-                    server->Send(response.Stringify().c_str(), ID);
-                    continue;
-                }
-                //So the move is valid, set move and send updated info to the player
-                if (players[ID].numShots > 0)
-                { 
-                    players[enemyID].ships->SetMove(pos, players[enemyID].board);
-                    players[ID].numShots--;
-                    hitCH = hitResult == HitStatus::Hit ? (int)hit : (int)miss;   
-                    //Respond to player that shot succeded
-                    RespondShootAccepted(ID, pos, hitCH);
-                    //Now lets send updated info to enemy  
-                    RespondPlayerShipHit(enemyID, pos, (int)players[enemyID].board[pos2D.y][pos2D.x]);
-                }
+                RespondShootEvent((int)request["Event_Shoot"]["Pos"], ID, enemyID);
                 break;
             case EVENT_UPDATE:
                 RespondGameUpdate(ID);
@@ -400,4 +391,9 @@ void Battleships::OnUpdateRenderMP(const size_t ID)
     }
     Sleep(1000);
     RespondGameFinished(ID);
+}
+
+const bool Battleships::SetMove(const size_t pos, Player& player)
+{    
+    return player.ships->SetMove(pos, player.board);
 }

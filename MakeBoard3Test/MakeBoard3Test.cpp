@@ -56,7 +56,7 @@ int main()
     std::cout << "possible vert size: " << ships.GetPossibleVerticalPositionsSize() << std::endl;
     std::cout << "possible hor size: " << ships.GetPossibleHorizontalPositionsSize() << std::endl;
 
-    MakeBoard3(20);
+    MakeBoard3(200);
     PrintBoard();
 
     std::cout << "possible pos size: " << ships.GetPossiblePositionsSize() << std::endl;

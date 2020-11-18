@@ -129,6 +129,11 @@ bool Ships::GetRandomShip(Ship& ship)
     return true;
 }
 
+const std::map<size_t, SHIPREF>& Ships::GetTakenPositions() const
+{
+    return takenPositions;
+}
+
 size_t Ships::GetNumShips()
 {
     return numShips;
