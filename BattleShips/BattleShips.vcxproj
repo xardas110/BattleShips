@@ -145,7 +145,7 @@
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Auth.cpp" />
-    <ClCompile Include="Player.cpp" />
+    <ClCompile Include="PlayerServer.cpp" />
     <ClCompile Include="PlayerClient.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="SHIPS.cpp" />

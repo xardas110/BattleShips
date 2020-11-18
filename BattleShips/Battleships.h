@@ -15,9 +15,8 @@ class Battleships : public std::enable_shared_from_this<Battleships>
 	{
 		Invalid, Miss, Hit
 	};
-
-	Server*			server = nullptr;
 	std::thread*	serverTH = nullptr;
+	Server*			server = nullptr;	
 	Player*			players;
 	int				numPlayers{ 0 };
 
@@ -25,7 +24,6 @@ class Battleships : public std::enable_shared_from_this<Battleships>
 	const char		ship{ 'S' };
 	const char		miss{ 'M' };
 	const char		hit{ 'H' };
-
 	
 	HitStatus		IsHit(iVec2D pos, const size_t playerID);
 	bool			IsCellEmpty(const iVec2D& pos, const size_t playerID);
